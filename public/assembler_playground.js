@@ -112,32 +112,40 @@ class EmulatedInstruction {
 
 
 
-const OperandA = new InstructionOperand("Dest-0", 11, 8);
-const OperandB = new InstructionOperand("Source-0", 7, 4);
-const OperandC = new InstructionOperand("Source-1", 3, 0);
+const OperandA = new InstructionOperand("A", "dest-reg", undefined, 11, 8);
+const OperandB = new InstructionOperand("B", "source-reg", undefined,  7, 4);
+const OperandC = new InstructionOperand("C", "source-reg", undefined,  3, 0);
+const Immediate = new InstructionOperand("Imm", "immediate", undefined,  7, 0);
+
+// No Operation
+const nopOpcode = new InstructionOpcode("nop", [], 15, 12);
+function nopExecution () {
+    return 0;
+}
+const nopAssembly = new Generic_InstructionAssembly(16, nopOpcode, [], []);
+const nopOperations = new Generic_Operation("stage-0", nopExecution);
 
 // Addition
 const addOpcode = new InstructionOpcode("add", [], 15, 12);
 function addExecution (input0, input1) {
-    const result = input0 + input1; 
-    return result;
+    return result = input0 + input1;
 }
-const addAssembly = new Generic_InstructionAssembly(16, addOpcode, [OperandA, OperandB, OperandC]);
+const addAssembly = new Generic_InstructionAssembly(16, addOpcode, [OperandA, OperandB, OperandC], []);
 const addOperations = new Generic_Operation("stage_0", addExecution);
 
 // Subtraction
 const subOpcode = new InstructionOpcode("sub", [], 15, 12);
 function subExecution (input0, input1) {
-    const result = input0 - input1;
-    return result;
+    return input0 - input1;
 }
-const subAssembly = new Generic_InstructionAssembly(16, subOpcode, [OperandA, OperandB, OperandC]);
+const subAssembly = new Generic_InstructionAssembly(16, [subOpcode, OperandA, OperandB, OperandC], []);
 const subOperations = new Generic_Operation("stage_0", subExecution);
 
 // Brining together the ISA
+const nopInstruction = new EmulatedInstruction("nop", nopAssembly, nopOperations);
 const additionInstruction = new EmulatedInstruction("add", addAssembly, addOperations);
-const subtractionInstruction = new EmulatedInstruction("add", addAssembly, addOperations);
-const instructionSet = [additionInstruction, subtractionInstruction];
+const subtractionInstruction = new EmulatedInstruction("sub", subAssembly, subOperations);
+const instructionSet = [nopInstruction, additionInstruction, subtractionInstruction];
 
 
 // class Generic_Operation {
