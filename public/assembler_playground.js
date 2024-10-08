@@ -136,8 +136,8 @@ const operandC = new InstructionOperand("C", "Source-Register", undefined,  3, 0
 const immediate = new InstructionOperand("Imm", "Immediate", undefined,  7, 0);
 
 // Flags
-const jumpFlags = new InstructionOpcode("Jump-Flags", "Flag", undefined, 11, 10);
-const branchFlags = new InstructionOpcode("Branch-Flags", "Flag", undefined, 11, 10);
+const jumpFlags = new InstructionOperand("Jump-Flags", "Flag", undefined, 11, 10);
+const branchFlags = new InstructionOperand("Branch-Flags", "Flag", undefined, 11, 10);
 
 // Opcode
 const majorOpcode = new InstructionOpcode(15, 12);
@@ -242,7 +242,7 @@ const subtractionInstruction = new EmulatedInstruction("sub", subAssembly, subOp
 const instructionSet = [nopInstruction, additionInstruction, subtractionInstruction];
 
 
-// class Generic_Operation {
+// class Generic_Operation { 
     // stageName = undefined;
     // sourceOperands = [];
     // destinationQueue = [];
