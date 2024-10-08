@@ -32,22 +32,40 @@ class InstructionOperand {
 }
 
 class InstructionOpcode {
-    // flags can use the operand struct
-    constructor (mnemonic, flags, startBit, endBit) {
-        this.mnemonic = mnemonic;
-        this.flags = flags;
+    startBit = undefined;
+    endBit = undefined;
+    constructor (startBit, endBit) {
         this.startBit = startBit;
         this.endBit = endBit;
     }
 }
 
-class Generic_InstructionAssembly extends InstructionAssembly {
+
+
+// This can be used for both machineFormant and assemblyFormat
+class InstructionFormat {
+    mnemonic = undefined;
     assembledLength = undefined;
+    opcode = undefined;
+    // Minor Opcodes can be put into flags
+    flags = [];
+    sourceOperands = [];
+    destOperands = [];
+    constructor (mnemonic, assembledLength, opcode, flags, sourceOperands, destOperands) {
+        this.mnemonic = mnemonic;
+        this.assembledLength = assembledLength;
+        this.opcode = opcode;
+        this.flags = flags;
+        this.sourceOperands = sourceOperands;
+        this.destOperands = destOperands;
+    }
+}
+
+class Generic_InstructionAssembly extends InstructionAssembly {
     machineFormat = [];
     assemblyFormat = [];
     constructor (mnemonic, assembledLength, mf, af) {
         super ();
-        this.assembledLength = assembledLength;
         this.mnemonic = mnemonic;
         this.machineFormat = mf;
         this.assemblyFormat = af;
@@ -111,38 +129,114 @@ class EmulatedInstruction {
 }
 
 
+//
+const operandA = new InstructionOperand("A", "Dest-Register", undefined, 11, 8);
+const operandB = new InstructionOperand("B", "Source-Register", undefined,  7, 4);
+const operandC = new InstructionOperand("C", "Source-Register", undefined,  3, 0);
+const immediate = new InstructionOperand("Imm", "Immediate", undefined,  7, 0);
 
-const OperandA = new InstructionOperand("A", "dest-reg", undefined, 11, 8);
-const OperandB = new InstructionOperand("B", "source-reg", undefined,  7, 4);
-const OperandC = new InstructionOperand("C", "source-reg", undefined,  3, 0);
-const Immediate = new InstructionOperand("Imm", "immediate", undefined,  7, 0);
+// Flags
+const jumpFlags = new InstructionOpcode("Jump-Flags", "Flag", undefined, 11, 10);
+const branchFlags = new InstructionOpcode("Branch-Flags", "Flag", undefined, 11, 10);
 
+// Opcode
+const majorOpcode = new InstructionOpcode(15, 12);
+
+// Instruction Formats
+const nopMachineFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
+const immediateMachineFormat = new InstructionFormat("immediate", 16, majorOpcode, [], [immediate], [operandA]);
+const threeOperandMachineFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
+const twoOperandMachineFormat = new InstructionFormat("two-operand", 16, majorOpcode, [], [operandC], [operandA]);
+const storeMachineFormat = new InstructionFormat("store", 16, majorOpcode, [], [operandB], [operandC]);
+const jumpMachineFormat = new InstructionFormat("jump", 16, majorOpcode, [jumpFlags], [immediate], []);
+const branchMachineFormat = new InstructionFormat("branch", 16, majorOpcode, [branchFlags], [immediate], []);
+
+//? Instructions
+//TODO: Setup emulatorState to be where the operands "decode the register address" and fetch the values from the main register file.
 // No Operation
-const nopOpcode = new InstructionOpcode("nop", [], 15, 12);
-function nopExecution () {
+const nopAssembly = new Generic_InstructionAssembly(nopMachineFormat, []);
+function nopExecution (sourceOperands, emulatorState) {
     return 0;
 }
-const nopAssembly = new Generic_InstructionAssembly(16, nopOpcode, [], []);
 const nopOperations = new Generic_Operation("stage-0", nopExecution);
 
 // Addition
-const addOpcode = new InstructionOpcode("add", [], 15, 12);
-function addExecution (input0, input1) {
-    return result = input0 + input1;
+const addAssembly = new Generic_InstructionAssembly(threeOperandMachineFormat, []);
+function addExecution (sourceOperands, emulatorState) {
+    return sourceOperands[0] + sourceOperands[1];
 }
-const addAssembly = new Generic_InstructionAssembly(16, addOpcode, [OperandA, OperandB, OperandC], []);
 const addOperations = new Generic_Operation("stage_0", addExecution);
 
 // Subtraction
-const subOpcode = new InstructionOpcode("sub", [], 15, 12);
-function subExecution (input0, input1) {
-    return input0 - input1;
+const subAssembly = new Generic_InstructionAssembly(threeOperandMachineFormat, []);
+function subExecution (sourceOperands, emulatorState) {
+    return  sourceOperands[0] - sourceOperands[1];
 }
-const subAssembly = new Generic_InstructionAssembly(16, [subOpcode, OperandA, OperandB, OperandC], []);
 const subOperations = new Generic_Operation("stage_0", subExecution);
 
-// Brining together the ISA
-const nopInstruction = new EmulatedInstruction("nop", nopAssembly, nopOperations);
+// AND
+const andAssembly = new Generic_InstructionAssembly(threeOperandMachineFormat, []);
+function andExecution (sourceOperands, emulatorState) {
+    return  sourceOperands[0] & sourceOperands[1];
+}
+const andOperations = new Generic_Operation("stage_0", andExecution);
+
+// OR
+const orAssembly = new Generic_InstructionAssembly(threeOperandMachineFormat, []);
+function orExecution (sourceOperands, emulatorState) {
+    return  sourceOperands[0] | sourceOperands[1];
+}
+const orOperations = new Generic_Operation("stage_0", orExecution);
+
+// XOR
+const xorAssembly = new Generic_InstructionAssembly(threeOperandMachineFormat, []);
+function xorExecution (sourceOperands, emulatorState) {
+    return  sourceOperands[0] ^ sourceOperands[1];
+}
+const xorOperations = new Generic_Operation("stage_0", xorExecution);
+
+// NOT C
+const notAssembly = new Generic_InstructionAssembly(twoOperandMachineFormat, []);
+function notExecution (sourceOperands, emulatorState) {
+    return ~sourceOperands[0];
+}
+const notOperations = new Generic_Operation("stage_0", notExecution);
+
+// Right Shift
+const rightShiftAssembly = new Generic_InstructionAssembly(twoOperandMachineFormat, []);
+function rightShiftExecution (sourceOperands, emulatorState) {
+    return sourceOperands[0] >> 1;
+}
+const rightShiftOperations = new Generic_Operation("stage_0", rightShiftExecution);
+
+// Load
+const loadAssembly = new Generic_InstructionAssembly(twoOperandMachineFormat, []);
+function loadExecution (sourceOperands, emulatorState) {
+    return ram[sourceOperands[0]];
+}
+const loadOperations = new Generic_Operation("stage_0", loadExecution);
+
+// Store
+const storeAssembly = new Generic_InstructionAssembly(storeMachineFormat, []);
+function storeExecution (sourceOperands, emulatorState) {
+    return sourceOperands[0]
+}
+
+// Jump
+const jumpAssembly = new Generic_InstructionAssembly(jumpMachineFormat, []);
+function jumpExecution (sourceOperands, flags, currentProgramCounter) {
+    // TODO:
+}
+
+// Branch
+const branchAssembly = new Generic_InstructionAssembly(branchMachineFormat, []);
+function branchExecution (sourceOperands, flags, emulatorState) {
+    // TODO:
+}
+const branchOperations = new Generic_Operation("stage_0", branchExecution);
+
+// Bringing together the ISA
+const noOperationInstruction = new EmulatedInstruction("nop", nopAssembly, nopOperations);
 const additionInstruction = new EmulatedInstruction("add", addAssembly, addOperations);
 const subtractionInstruction = new EmulatedInstruction("sub", subAssembly, subOperations);
 const instructionSet = [nopInstruction, additionInstruction, subtractionInstruction];
