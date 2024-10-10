@@ -28,8 +28,8 @@ class AssembledNopFormat extends InstructionAssembly {
     }
 }
 // Three Operand
-class AssembledNopFormat extends InstructionAssembly {
-    instructionFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
+class AssembledThreeOperandFormat extends InstructionAssembly {
+    instructionFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
     constructor(instructionFormat) {
         super(instructionFormat);
     }
@@ -39,25 +39,6 @@ class AssembledNopFormat extends InstructionAssembly {
         return assembledLine;
     }
     Disassemble(line) {
-        // Custom Disassembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-}
-class AssembledThreeOperandFormat {
-    instructionFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
-    }
-    assemble(line) {
-        // Custom Assembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-    disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
         return assembledLine;
