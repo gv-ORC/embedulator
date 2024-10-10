@@ -1,103 +1,3 @@
-class Program {
-    programCounter = 0;
-    lines = [];
-    constructor (program) {
-        this.lines = program;
-    }
-    next_line (){
-        if (this.programCounter + 1 > this.lines.length) {
-            throw "Out of Bounds!"
-        }
-        return this.lines[this.programCounter++]
-    }
-    peek (){
-        if (this.programCounter > this.lines.length) {
-            throw "Out of Bounds!"
-        }
-        return this.lines[this.programCounter]
-    }
-    eof (){
-        return (this.programCounter > this.lines.length);
-    }
-}
-
-//                                                                           //
-
-class InstructionAssembly {
-    instructionFormat = undefined;
-    internalAssemble = undefined;
-    internalDisassemble = undefined;
-    constructor (instructionFormat, internalAssemble, internalDisassemble) {
-        this.instructionFormat = instructionFormat;
-        this.internalAssemble = internalAssemble;
-        this.internalDisassemble = internalDisassemble;
-    }
-    assemble(line){
-        // Some stuff
-        const assembledLine = line;
-        return this.internalAssemble(assembledLine);
-    }
-    disassemble(line){
-        // Some stuff
-        const disassembledLine = line;
-        return this.internalDisassemble(disassembledLine);
-    }
-}
-
-class InstructionOperand {
-    mnemonic = undefined;
-    value = undefined;
-    startBit = undefined;
-    endBit = undefined;
-    constructor (mnemonic, value, startBit, endBit) {
-        this.mnemonic = mnemonic;
-        this.value = value;
-        this.startBit = startBit;
-        this.endBit = endBit;
-    }
-}
-
-class InstructionOpcode {
-    startBit = undefined;
-    endBit = undefined;
-    constructor (startBit, endBit) {
-        this.startBit = startBit;
-        this.endBit = endBit;
-    }
-}
-
-// This can be used for both machineFormant and assemblyFormat
-class InstructionFormat {
-    mnemonic = undefined;
-    assembledLength = undefined;
-    opcode = undefined;
-    // Minor Opcodes can be put into flags
-    flags = [];
-    sourceOperands = [];
-    destOperands = [];
-    constructor (mnemonic, assembledLength, opcode, flags, sourceOperands, destOperands) {
-        this.mnemonic = mnemonic;
-        this.assembledLength = assembledLength;
-        this.opcode = opcode;
-        this.flags = flags;
-        this.sourceOperands = sourceOperands;
-        this.destOperands = destOperands;
-    }
-}
-
-class InstructionDefinition {
-    mnemonic = undefined;
-    instructionAssembly = undefined;
-    instructionOperations = {};
-    constructor (mnemonic, instructionAssembly, instructionOperations) {
-        this.mnemonic = mnemonic;
-        this.instructionAssembly = instructionAssembly;
-        this.instructionOperations = instructionOperations;
-    }
-}
-
-//                                                                           //
-
 //? Format Definitions
 // Operands
 const operandA = new InstructionOperand("A", undefined, 11, 8);
@@ -111,26 +11,39 @@ const branchFlags = new InstructionOperand("Branch-Flags", undefined, 11, 10);
 const majorOpcode = new InstructionOpcode(15, 12);
 //? Instruction Formats
 // Nop
-class AssembledNopFormat {
+class AssembledNopFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Three Operand
+class AssembledNopFormat extends InstructionAssembly {
+    instructionFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
+    constructor(instructionFormat) {
+        super(instructionFormat);
+    }
+    Assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    Disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+}
 class AssembledThreeOperandFormat {
     instructionFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
     constructor() {
@@ -147,111 +60,94 @@ class AssembledThreeOperandFormat {
     disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Two Operand
-class AssembledTwoOperandFormat {
+class AssembledTwoOperandFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("two-operand", 16, majorOpcode, [], [operandC], [operandA]);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Store
-class AssembledStoreFormat {
+class AssembledStoreFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("store", 16, majorOpcode, [], [operandB], [operandC]);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Immediate
-class AssembledImmediateFormat {
+class AssembledImmediateFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("immediate", 16, majorOpcode, [], [immediate], [operandA]);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Jump
-class AssembledJumpFormat {
+class AssembledJumpFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("jump", 16, majorOpcode, [jumpFlags], [immediate], []);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
 // Branch
-class AssembledBranchFormat {
+class AssembledBranchFormat extends InstructionAssembly {
     instructionFormat = new InstructionFormat("branch", 16, majorOpcode, [branchFlags], [immediate], []);
-    constructor() {
-        this.instructionAssembly = new InstructionAssembly(
-            this.instructionFormat,
-            this.assemble.bind(this),
-            this.disassemble.bind(this));
+    constructor(instructionFormat) {
+        super(instructionFormat);
     }
-    assemble(line) {
+    Assemble(line) {
         // Custom Assembly Code Here
         const assembledLine = line;
         return assembledLine;
     }
-    disassemble(line) {
+    Disassemble(line) {
         // Custom Disassembly Code Here
         const assembledLine = line;
-        return assembledLine;  
+        return assembledLine;
     }
 }
-//? Custom Instruction Type
-
 
 //? Instructions
 // No Operation
