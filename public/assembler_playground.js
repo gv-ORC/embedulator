@@ -1,69 +1,3 @@
-class InstructionAssembly {
-    instructionFormat = undefined;
-    internalAssemble = undefined;
-    internalDisassemble = undefined;
-    constructor (instructionFormat, internalAssemble, internalDisassemble) {
-        this.instructionFormat = instructionFormat;
-        this.internalAssemble = internalAssemble;
-        this.internalDisassemble = internalDisassemble;
-    }
-    assemble(line){
-        // Some stuff
-        const assembledLine = line;
-        return this.internalAssemble(assembledLine);
-    }
-    disassemble(line){
-        // Some stuff
-        const disassembledLine = line;
-        return this.internalDisassemble(disassembledLine);
-    }
-}
-
-class InstructionOperand {
-    mnemonic = undefined;
-    type = undefined;
-    value = undefined;
-    startBit = undefined;
-    endBit = undefined;
-    constructor (mnemonic, type, value, startBit, endBit) {
-        this.mnemonic = mnemonic;
-        this.type = type;
-        this.value = value;
-        this.startBit = startBit;
-        this.endBit = endBit;
-    }
-}
-
-class InstructionOpcode {
-    startBit = undefined;
-    endBit = undefined;
-    constructor (startBit, endBit) {
-        this.startBit = startBit;
-        this.endBit = endBit;
-    }
-}
-
-
-
-// This can be used for both machineFormant and assemblyFormat
-class InstructionFormat {
-    mnemonic = undefined;
-    assembledLength = undefined;
-    opcode = undefined;
-    // Minor Opcodes can be put into flags
-    flags = [];
-    sourceOperands = [];
-    destOperands = [];
-    constructor (mnemonic, assembledLength, opcode, flags, sourceOperands, destOperands) {
-        this.mnemonic = mnemonic;
-        this.assembledLength = assembledLength;
-        this.opcode = opcode;
-        this.flags = flags;
-        this.sourceOperands = sourceOperands;
-        this.destOperands = destOperands;
-    }
-}
-
 class Program {
     programCounter = 0;
     lines = [];
@@ -87,19 +21,74 @@ class Program {
     }
 }
 
-class Generic_Operation {
-    stageName = undefined;
-    functionQueue = [];
-    constructor (stageName, functionQueue) {
-        this.stageName = stageName;
-        this.functionQueue = functionQueue;
+//                                                                           //
+
+class InstructionAssembly {
+    instructionFormat = undefined;
+    internalAssemble = undefined;
+    internalDisassemble = undefined;
+    constructor (instructionFormat, internalAssemble, internalDisassemble) {
+        this.instructionFormat = instructionFormat;
+        this.internalAssemble = internalAssemble;
+        this.internalDisassemble = internalDisassemble;
+    }
+    assemble(line){
+        // Some stuff
+        const assembledLine = line;
+        return this.internalAssemble(assembledLine);
+    }
+    disassemble(line){
+        // Some stuff
+        const disassembledLine = line;
+        return this.internalDisassemble(disassembledLine);
     }
 }
 
-class EmulatedInstruction {
+class InstructionOperand {
+    mnemonic = undefined;
+    value = undefined;
+    startBit = undefined;
+    endBit = undefined;
+    constructor (mnemonic, value, startBit, endBit) {
+        this.mnemonic = mnemonic;
+        this.value = value;
+        this.startBit = startBit;
+        this.endBit = endBit;
+    }
+}
+
+class InstructionOpcode {
+    startBit = undefined;
+    endBit = undefined;
+    constructor (startBit, endBit) {
+        this.startBit = startBit;
+        this.endBit = endBit;
+    }
+}
+
+// This can be used for both machineFormant and assemblyFormat
+class InstructionFormat {
+    mnemonic = undefined;
+    assembledLength = undefined;
+    opcode = undefined;
+    // Minor Opcodes can be put into flags
+    flags = [];
+    sourceOperands = [];
+    destOperands = [];
+    constructor (mnemonic, assembledLength, opcode, flags, sourceOperands, destOperands) {
+        this.mnemonic = mnemonic;
+        this.assembledLength = assembledLength;
+        this.opcode = opcode;
+        this.flags = flags;
+        this.sourceOperands = sourceOperands;
+        this.destOperands = destOperands;
+    }
+}
+
+class InstructionDefinition {
     mnemonic = undefined;
     instructionAssembly = undefined;
-    instructionOperations = [];
+    instructionOperations = {};
     constructor (mnemonic, instructionAssembly, instructionOperations) {
         this.mnemonic = mnemonic;
         this.instructionAssembly = instructionAssembly;
@@ -107,222 +96,277 @@ class EmulatedInstruction {
     }
 }
 
+//                                                                           //
+
 //? Format Definitions
 // Operands
-const operandA = new InstructionOperand("A", "Dest-Register", undefined, 11, 8);
-const operandB = new InstructionOperand("B", "Source-Register", undefined,  7, 4);
-const operandC = new InstructionOperand("C", "Source-Register", undefined,  3, 0);
-const immediate = new InstructionOperand("Imm", "Immediate", undefined,  7, 0);
+const operandA = new InstructionOperand("A", undefined, 11, 8);
+const operandB = new InstructionOperand("B", undefined,  7, 4);
+const operandC = new InstructionOperand("C", undefined,  3, 0);
+const immediate = new InstructionOperand("Imm", undefined,  7, 0);
 // Flags
-const jumpFlags = new InstructionOperand("Jump-Flags", "Flag", undefined, 11, 10);
-const branchFlags = new InstructionOperand("Branch-Flags", "Flag", undefined, 11, 10);
+const jumpFlags = new InstructionOperand("Jump-Flags", undefined, 11, 10);
+const branchFlags = new InstructionOperand("Branch-Flags", undefined, 11, 10);
 // Opcode
 const majorOpcode = new InstructionOpcode(15, 12);
-
 //? Instruction Formats
 // Nop
-const nopMachineFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
-function assembleNop(line) {
-    const assembledLine = line;
-    return assembledLine;
-
-}
-function disassembleNop(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
+class AssembledNopFormat {
+    instructionFormat = new InstructionFormat("nop", 16, majorOpcode, [], [], []);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Three Operand
-const threeOperandMachineFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
-function assembleThreeOperand(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
-}
-function disassembleThreeOperand(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
+class AssembledThreeOperandFormat {
+    instructionFormat = new InstructionFormat("three-operand", 16, majorOpcode, [], [operandB, operandC], [operandA]);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Two Operand
-const twoOperandMachineFormat = new InstructionFormat("two-operand", 16, majorOpcode, [], [operandC], [operandA]);
-function assembleTwoOperand(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
-}
-function disassembleTwoOperand(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
+class AssembledTwoOperandFormat {
+    instructionFormat = new InstructionFormat("two-operand", 16, majorOpcode, [], [operandC], [operandA]);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Store
-const storeMachineFormat = new InstructionFormat("store", 16, majorOpcode, [], [operandB], [operandC]);
-function assembleStore(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
-}
-function disassembleStore(line) {
-    const assembledLine = line;
-    return assembledLine;
-    
+class AssembledStoreFormat {
+    instructionFormat = new InstructionFormat("store", 16, majorOpcode, [], [operandB], [operandC]);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Immediate
-const immediateMachineFormat = new InstructionFormat("immediate", 16, majorOpcode, [], [immediate], [operandA]);
-function assembleImmediate(line) {
-    const assembledLine = line;
-    return assembledLine;
-
-}
-function disassembleImmediate(line) {
-    const assembledLine = line;
-    return assembledLine;
-
+class AssembledImmediateFormat {
+    instructionFormat = new InstructionFormat("immediate", 16, majorOpcode, [], [immediate], [operandA]);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Jump
-const jumpMachineFormat = new InstructionFormat("jump", 16, majorOpcode, [jumpFlags], [immediate], []);
-function assembleJump(line) {
-    const assembledLine = line;
-    return assembledLine;
-
-}
-function disassembleJump(line) {
-    const assembledLine = line;
-    return assembledLine;
-
+class AssembledJumpFormat {
+    instructionFormat = new InstructionFormat("jump", 16, majorOpcode, [jumpFlags], [immediate], []);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 // Branch
-const branchMachineFormat = new InstructionFormat("branch", 16, majorOpcode, [branchFlags], [immediate], []);
-function assembleBranch(line) {
-    const assembledLine = line;
-    return assembledLine;
-
-}
-function disassembleBranch(line) {
-    const assembledLine = line;
-    return assembledLine;
-
+class AssembledBranchFormat {
+    instructionFormat = new InstructionFormat("branch", 16, majorOpcode, [branchFlags], [immediate], []);
+    constructor() {
+        this.instructionAssembly = new InstructionAssembly(
+            this.instructionFormat,
+            this.assemble.bind(this),
+            this.disassemble.bind(this));
+    }
+    assemble(line) {
+        // Custom Assembly Code Here
+        const assembledLine = line;
+        return assembledLine;
+    }
+    disassemble(line) {
+        // Custom Disassembly Code Here
+        const assembledLine = line;
+        return assembledLine;  
+    }
 }
 //? Custom Instruction Type
 
 
 //? Instructions
-//TODO: Setup emulatorState to be where the operands "decode the register address" and fetch the values from the main register file.
 // No Operation
-const nopAssembly = new InstructionAssembly(nopMachineFormat, assembleNop, disassembleNop);
-function nopExecution (instruction, emulatorState) {
-    return 0;
+const nopOperations = {
+    "stage_0": function nopExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const nopOperations = new Generic_Operation("stage-0", nopExecution);
+const nopInstruction = new InstructionDefinition("nop", AssembledNopFormat, nopOperations);
 
 // Addition
-const addAssembly = new InstructionAssembly(threeOperandMachineFormat, assembleThreeOperand, disassembleThreeOperand);
-function addExecution (instruction, emulatorState) {
-    return sourceOperands[0] + sourceOperands[1];
+const addOperations = {
+    "stage_0": function addExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const addOperations = new Generic_Operation("stage_0", addExecution);
+const additionInstruction = new InstructionDefinition("add", AssembledThreeOperandFormat, addOperations);
 
 // Subtraction
-const subAssembly = new InstructionAssembly(threeOperandMachineFormat, assembleThreeOperand, disassembleThreeOperand);
-function subExecution (instruction, emulatorState) {
-    return  sourceOperands[0] - sourceOperands[1];
+const subOperations = {
+    "stage_0": function subExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const subOperations = new Generic_Operation("stage_0", subExecution);
+const subtractionInstruction = new InstructionDefinition("sub", AssembledThreeOperandFormat, subOperations);
 
 // AND
-const andAssembly = new InstructionAssembly(threeOperandMachineFormat, assembleThreeOperand, disassembleThreeOperand);
-function andExecution (instruction, emulatorState) {
-    return  sourceOperands[0] & sourceOperands[1];
+const andOperations = {
+    "stage_0":function andExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const andOperations = new Generic_Operation("stage_0", andExecution);
+const andInstruction = new InstructionDefinition("and", AssembledThreeOperandFormat, andOperations);
 
 // OR
-const orAssembly = new InstructionAssembly(threeOperandMachineFormat, assembleThreeOperand, disassembleThreeOperand);
-function orExecution (instruction, emulatorState) {
-    return  sourceOperands[0] | sourceOperands[1];
+const orOperations = {
+    "stage_0": function orExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const orOperations = new Generic_Operation("stage_0", orExecution);
+const orInstruction = new InstructionDefinition("ior", AssembledThreeOperandFormat, orOperations);
 
 // XOR
-const xorAssembly = new InstructionAssembly(threeOperandMachineFormat, assembleThreeOperand, disassembleThreeOperand);
-function xorExecution (instruction, emulatorState) {
-    return  sourceOperands[0] ^ sourceOperands[1];
+const xorOperations = {
+    "stage_0": function xorExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const xorOperations = new Generic_Operation("stage_0", xorExecution);
+const xorInstruction = new InstructionDefinition("xor", AssembledThreeOperandFormat, xorOperations);
 
 // NOT C
-const notCAssembly = new InstructionAssembly(twoOperandMachineFormat, assembleTwoOperand, disassembleTwoOperand);
-function notCExecution (instruction, emulatorState) {
-    return ~sourceOperands[0];
+const notCOperations = {
+    "stage_0": function notCExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const notCOperations = new Generic_Operation("stage_0", notCExecution);
+const notCInstruction = new InstructionDefinition("not", AssembledTwoOperandFormat, notCOperations);
 
 // Right Shift
-const rightShiftAssembly = new InstructionAssembly(twoOperandMachineFormat, assembleTwoOperand, disassembleTwoOperand);
-function rightShiftExecution (instruction, emulatorState) {
-    return sourceOperands[0] >> 1;
+const rightShiftOperations = {
+    "stage_0": function rightShiftExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const rightShiftOperations = new Generic_Operation("stage_0", rightShiftExecution);
+const rightShiftInstruction = new InstructionDefinition("rsh", AssembledTwoOperandFormat, rightShiftOperations);
 
 // Load
-const loadAssembly = new InstructionAssembly(twoOperandMachineFormat, assembleTwoOperand, disassembleTwoOperand);
-function loadExecution (instruction, emulatorState) {
-    return ram[sourceOperands[0]];
+const loadOperations = {
+    "stage_0": function loadExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const loadOperations = new Generic_Operation("stage_0", loadExecution);
+const loadInstruction = new InstructionDefinition("lod", AssembledTwoOperandFormat, loadOperations);
 
 // Store
-const storeAssembly = new InstructionAssembly(storeMachineFormat, assembleStore, disassembleStore);
-function storeExecution (instruction, emulatorState) {
-    return sourceOperands[0]
+const storeOperations = {
+    "stage_0": function storeExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const storeOperations = new Generic_Operation("stage_0", storeExecution);
+const storeInstruction = new InstructionDefinition("str", AssembledStoreFormat, storeOperations);
 
 // Load Immediate
-const loadImmediateAssembly = new InstructionAssembly(jumpMachineFormat, assembleImmediate, disassembleImmediate);
-function loadImmediateExecution (instruction, emulatorState) {
-    // TODO:
+const loadImmediateOperations = {
+    "stage_0": function loadImmediateExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const loadImmediateOperations = new Generic_Operation("stage_0", loadImmediateExecution);
+const loadImmediateInstruction = new InstructionDefinition("lim", AssembledImmediateFormat, loadImmediateOperations);
 
 // Halt
-const haltAssembly = new InstructionAssembly(nopMachineFormat, assembleNop, disassembleNop);
-function haltExecution (instruction, emulatorState) {
-    // TODO:
+const haltOperations = {
+    "stage_0": function haltExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const haltOperations = new Generic_Operation("stage_0", haltExecution);
+const haltInstruction = new InstructionDefinition("hlt", AssembledNopFormat, haltOperations);
 
 // Jump
-const jumpAssembly = new InstructionAssembly(jumpMachineFormat, assembleJump, disassembleJump);
-function jumpExecution (instruction, emulatorState) {
-    // TODO:
+const jumpOperations = {
+    "stage_0": function jumpExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const jumpOperations = new Generic_Operation("stage_0", jumpExecution);
+const jumpInstruction = new InstructionDefinition("jmp", AssembledJumpFormat, jumpOperations);
 
 // Branch
-const branchAssembly = new InstructionAssembly(branchMachineFormat, assembleBranch, disassembleBranch);
-function branchExecution (instruction, emulatorState) {
-    // TODO:
+const branchOperations = {
+    "stage_0": function branchExecute(instruction, emulatorState) {
+        // Code that gets executed for this instruction
+    }
 }
-const branchOperations = new Generic_Operation("stage_0", branchExecution);
+const branchInstruction = new InstructionDefinition("brn", AssembledBranchFormat, branchOperations);
 
-// Bringing together the ISA
-const nopInstruction = new EmulatedInstruction("nop", nopAssembly, nopOperations);
-const additionInstruction = new EmulatedInstruction("add", addAssembly, addOperations);
-const subtractionInstruction = new EmulatedInstruction("sub", subAssembly, subOperations);
-const andInstruction = new EmulatedInstruction("and", andAssembly, andOperations);
-const orInstruction = new EmulatedInstruction("ior", orAssembly, orOperations);
-const xorInstruction = new EmulatedInstruction("xor", xorAssembly, xorOperations);
-const notCInstruction = new EmulatedInstruction("not", notCAssembly, notCOperations);
-const rightShiftInstruction = new EmulatedInstruction("rsh", rightShiftAssembly, rightShiftOperations);
-const loadInstruction = new EmulatedInstruction("lod", loadAssembly, loadOperations);
-const storeInstruction = new EmulatedInstruction("str", storeAssembly, storeOperations);
-const loadImmediateInstruction = new EmulatedInstruction("lim", loadImmediateAssembly, loadImmediateOperations);
-const haltInstruction = new EmulatedInstruction("hlt", haltAssembly, haltOperations);
-const jumpInstruction = new EmulatedInstruction("jmp", jumpAssembly, jumpOperations);
-const branchInstruction = new EmulatedInstruction("brn", branchAssembly, branchOperations);
-
+//? Array of all defined instructions
 const instructionSet = [nopInstruction,
                         additionInstruction,
                         subtractionInstruction,
