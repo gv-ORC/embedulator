@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link href="../src/output.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Processor Academy Emulator</title>
+  </head>
+  <style>
+    .body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .box {
+        flex: 5;
+        /* width: 500px; */
+        text-align: center;
+    }
+    .border {
+        flex: 1;
+        /* width: 500px; */
+        text-align: center;
+    }
+    #editor {
+        flex: 6;
+        height: 545px;
+        margin: 0;
+    }
+    .current-instruction {
+        position: absolute;
+        background-color: hsla(0, 0%, 75%, 0.25);
+    }
+    .last-instruction {
+        position: absolute;
+        background-color: hsla(295, 66%, 43%, 0.712);
+    }
+    /* Info for Instruction Lifecycle Information  */
+    .ace_gutter-cell.ace_info {
+        /* background: url('') no-repeat center center; */
+        background-color: hsla(180, 73%, 54%, 0.842);
+    }
+    /* Warning for Performance Breakpoints */
+    .ace_gutter-cell.ace_warning {
+        /* background: url('') no-repeat center center; */
+        background-color: hsla(0, 0%, 80%, 0.5);
+    }
+    /* Error for Debug Breakpoints */
+    .ace_gutter-cell.ace_error {
+        /* background: url('') no-repeat center center; */
+        background-color: hsla(39, 100%, 50%, 0.699);
+    }
+    .ace_breakpoint {
+        background-color: hsla(0, 100%, 50%, 0.699);
+    }
+    .debug-breakpoint {
+        color: black;
+        background-color: hsla(115, 100%, 50%, 0.699);
+    }
+    .performance-breakpoint {
+        background-color: hsla(241, 100%, 50%, 0.699);
+    }
+
+    .ace_custom-gutter-text:after {
+            content: attr(data-text); /* Insert custom text from data attribute */
+            color: orange;
+            margin-left: 5px; /* Space between line number and custom text */
+            font-weight: bold;
+        }
+  </style>
+  <body>
+    <div class="border"></div>
+    <div class="body">
+        <div class="box">
+            <p>Emulator Control:</p>
+            <button onclick="emulator.Start()">( - Start - )</button>
+            <button onclick="emulator.Stop()">( - Stop - )</button>
+            <br>
+            <button onclick="emulator.safeStep()">( - Step Forward - )</button>
+            <button onclick="emulator.Stop()">( - Step Backward - )</button>
+            <br>
+            <button onclick="emulator.Reset()">( - Reset - )</button>
+            <br>
+            <br>
+            <p>Emulator State:</p>
+            <pre id="currentInstructionStatus">Executed Inst(PC): Nothing Loaded!</pre>
+            <pre id="currentCycleCount">Cycle Count: 0</pre>
+            <pre id="currentRegisterFile0">Register File   [0:3]: [0, 0, 0, 0]</pre>
+            <pre id="currentRegisterFile1">Register File   [4:7]: [0, 0, 0, 0]</pre>
+            <pre id="currentRegisterFile2">Register File  [8:11]: [0, 0, 0, 0]</pre>
+            <pre id="currentRegisterFile3">Register File [12:15]: [0, 0, 0, 0]</pre>
+            <pre id="currentFlagRegister">Carry Out: false, Zero Flag: false</pre>
+            <br>
+            <pre id="emulatorPC">Next Program Counter: 0</pre>
+            <br>
+        </div>
+        <div class="box">
+            <p>Code Control:</p>
+            <button onclick="emulator.safeAssemble()">( - Assemble - )</button>
+            <button id="CodeTypeToggle" onclick="emulator.toggleCodeType()">( * Code In Hex * )</button>
+            <pre id="emuAssembleState">*Ready*</pre>
+            <p>Assembled Program:</p>
+            <textarea id="assembledBreaks" rows="10" cols="2" onclick="emulator.lineStateChange(true)" readonly></textarea>
+            <textarea id="assembledLineNumbers" rows="10" cols="4" onclick="emulator.lineStateChange(true)" readonly></textarea>
+            <textarea id="assembledProgram" rows="10" cols="30" disabled>Your Assembled Code...</textarea>
+        </div>
+        <pre id="editor">
+Line0abcdefghijklmnopqrstuvwxyz
+Line1abcdefghijklmnopqrstuvwxyz
+Line2abcdefghijklmnopqrstuvwxyz
+Line3abcdefghijklmnopqrstuvwxyz
+Line4abcdefghijklmnopqrstuvwxyz
+Line5abcdefghijklmnopqrstuvwxyz
+Line6abcdefghijklmnopqrstuvwxyz
+Line7abcdefghijklmnopqrstuvwxyz
+Line8abcdefghijklmnopqrstuvwxyz
+Line9abcdefghijklmnopqrstuvwxyz
+Line10abcdefghijklmnopqrstuvwxyz
+Line11abcdefghijklmnopqrstuvwxyz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+           
+        </pre>
+        <div class="border"></div>
+    </div>
+    <script type="text/javascript" src="../src/ace.js" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor", {
+            firstLineNumber: 0,
+            wrap: true
+        });
+        editor.setTheme("ace/theme/twilight");
+        editor.session.setMode("ace/mode/assembly_x86");
+        editor.session.setAnnotations([
+            {
+                row: 1,
+                column: 4,
+                text: "test info!",
+                type: "info"
+            },
+            {
+                row: 2,
+                column: 8,
+                text: "test warning!",
+                type: "warning"
+            },
+            {
+                row: 7,
+                column: 12,
+                text: "test error!",
+                type: "error"
+            }
+        ]);
+        var Range = ace.require('ace/range').Range;
+        editor.session.addMarker(new Range(5, 0, 5, 1), "current-instruction", "fullLine");
+        editor.session.addMarker(new Range(0, 6, 1, 0), "last-instruction", "line");
+        editor.session.addMarker(new Range(31, 6, 32, 0), "last-instruction", "line");
+        editor.session.setBreakpoint(5);
+        editor.session.setBreakpoint(6, 'debug-breakpoint');
+        editor.session.setBreakpoint(8, 'performance-breakpoint');
+
+
+
+
+        
+        // var gutterCells = document.querySelectorAll('.ace_gutter-cell');
+        // function setCustomGutterText() {
+        //     gutterCells[6].classList.add("ace_custom-gutter-text");
+        //     gutterCells[6].setAttribute("data-text", "T");
+        // }
+
+        // editor.on('change', function() {
+        //     setTimeout(setCustomGutterText, 700); // Delay to wait for render
+        // });
+
+
+    </script>
+    <script type="text/javascript" src="./createEmulator.js"></script>
+    <script type="text/javascript" src="./assemble.js"></script>
+    <script type="text/javascript" src="./main.js"></script>
+</body>
+</html>
+
+
