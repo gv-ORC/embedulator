@@ -1,8 +1,5 @@
 class InstructionAssembly {
     instructionFormat = undefined;
-    constructor (instructionFormat) {
-        this.instructionFormat = instructionFormat;
-    }
     _InternalAssemble(line){
         // ToDo
         const preAssembledLine = line;
@@ -20,6 +17,9 @@ class InstructionAssembly {
     // `internalDisassemble` Will be overridden by the user config
     Disassemble(program) {
         return [program]
+    }
+    getFormat() {
+        return this.instructionFormat;
     }
 }
 class InstructionOperand {
@@ -65,8 +65,7 @@ class InstructionDefinition {
     instructionOperations = {};
     constructor (mnemonic, instructionAssembly, instructionOperations) {
         this.mnemonic = mnemonic;
-        this.instructionAssembly = instructionAssembly;
+        this.instructionAssembly = new instructionAssembly();
         this.instructionOperations = instructionOperations;
     }
 }
-
