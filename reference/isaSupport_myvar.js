@@ -17,25 +17,25 @@ class InstructionOpcode {
 }
 
 class Program {
-    index = 0;
+    programCounter = 0;
     lines = [];
     constructor (program) {
         this.lines = program;
     }
     next_line (){
-        if (this.index + 1 > this.lines.length) {
+        if (this.programCounter + 1 > this.lines.length) {
             throw "Out of Bounds!"
         }
-        return this.lines[this.index++]
+        return this.lines[this.programCounter++]
     }
     peek (){
-        if (this.index > this.lines.length) {
+        if (this.programCounter > this.lines.length) {
             throw "Out of Bounds!"
         }
-        return this.lines[this.index]
+        return this.lines[this.programCounter]
     }
     eof (){
-        return (this.index > this.lines.length);
+        return (this.programCounter > this.lines.length);
     }
 }
 

@@ -105,38 +105,7 @@
             <textarea id="assembledProgram" rows="10" cols="30" disabled>Your Assembled Code...</textarea>
         </div>
         <pre id="editor">
-Line0abcdefghijklmnopqrstuvwxyz
-Line1abcdefghijklmnopqrstuvwxyz
-Line2abcdefghijklmnopqrstuvwxyz
-Line3abcdefghijklmnopqrstuvwxyz
-Line4abcdefghijklmnopqrstuvwxyz
-Line5abcdefghijklmnopqrstuvwxyz
-Line6abcdefghijklmnopqrstuvwxyz
-Line7abcdefghijklmnopqrstuvwxyz
-Line8abcdefghijklmnopqrstuvwxyz
-Line9abcdefghijklmnopqrstuvwxyz
-Line10abcdefghijklmnopqrstuvwxyz
-Line11abcdefghijklmnopqrstuvwxyz
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-           
+            Type your code here...
         </pre>
         <div class="border"></div>
     </div>
@@ -147,39 +116,36 @@ Line11abcdefghijklmnopqrstuvwxyz
             wrap: true
         });
         editor.setTheme("ace/theme/twilight");
-        editor.session.setMode("ace/mode/assembly_x86");
-        editor.session.setAnnotations([
-            {
-                row: 1,
-                column: 4,
-                text: "test info!",
-                type: "info"
-            },
-            {
-                row: 2,
-                column: 8,
-                text: "test warning!",
-                type: "warning"
-            },
-            {
-                row: 7,
-                column: 12,
-                text: "test error!",
-                type: "error"
-            }
-        ]);
-        var Range = ace.require('ace/range').Range;
-        editor.session.addMarker(new Range(5, 0, 5, 1), "current-instruction", "fullLine");
-        editor.session.addMarker(new Range(0, 6, 1, 0), "last-instruction", "line");
-        editor.session.addMarker(new Range(31, 6, 32, 0), "last-instruction", "line");
-        editor.session.setBreakpoint(5);
-        editor.session.setBreakpoint(6, 'debug-breakpoint');
-        editor.session.setBreakpoint(8, 'performance-breakpoint');
+        // editor.session.setMode("ace/mode/assembly_x86");
+        // editor.session.setAnnotations([
+        //     {
+        //         row: 1,
+        //         column: 4,
+        //         text: "test info!",
+        //         type: "info"
+        //     },
+        //     {
+        //         row: 2,
+        //         column: 8,
+        //         text: "test warning!",
+        //         type: "warning"
+        //     },
+        //     {
+        //         row: 7,
+        //         column: 12,
+        //         text: "test error!",
+        //         type: "error"
+        //     }
+        // ]);
+        // var Range = ace.require('ace/range').Range;
+        // editor.session.addMarker(new Range(5, 0, 5, 1), "current-instruction", "fullLine");
+        // editor.session.addMarker(new Range(0, 6, 1, 0), "last-instruction", "line");
+        // editor.session.addMarker(new Range(31, 6, 32, 0), "last-instruction", "line");
+        // editor.session.setBreakpoint(5);
+        // editor.session.setBreakpoint(6, 'debug-breakpoint');
+        // editor.session.setBreakpoint(8, 'performance-breakpoint');
 
-
-
-
-        
+    //! - Only flashed the cell with the test "T", unless you set way too long of a delay of around 700ms or higher
         // var gutterCells = document.querySelectorAll('.ace_gutter-cell');
         // function setCustomGutterText() {
         //     gutterCells[6].classList.add("ace_custom-gutter-text");
@@ -192,8 +158,9 @@ Line11abcdefghijklmnopqrstuvwxyz
 
 
     </script>
-    <script type="text/javascript" src="./createEmulator.js"></script>
-    <script type="text/javascript" src="./assemble.js"></script>
+    <script type="text/javascript" src="./embedulator.js"></script>
+    <script type="text/javascript" src="./instruction.js"></script>
+    <script type="text/javascript" src="./crash_course_cpu_isa.js"></script>
     <script type="text/javascript" src="./main.js"></script>
 </body>
 </html>
