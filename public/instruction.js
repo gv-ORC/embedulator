@@ -39,19 +39,19 @@ class InstructionAssembly {
         const partiallyAssembledFlags = operandExtraction(flags, splitLine, assembledLineCount);
         partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledInstruction, partiallyAssembledFlags, assembledLineCount);
         //* Partially assemble the line
+        const immediate = instruction.instructionFormat.immediate;
+        const partiallyAssembledImmediate = immediateExtraction(immediate, splitLine, assembledLineCount);
+        partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledInstruction, partiallyAssembledImmediate, assembledLineCount);
         
         //TODO: add an immediate field to the instruction format
-        //TODO itterativly apply mask to each line
-        // Mask assembled instruction to the final instruction width... for safety.
-        const unmaskedPartiallyAssembledLine = partiallyAssembledOpcodes | assembledOperands;
-        const invertedPartiallyAssembleMask = ~0 << this.instructionFormat.assembledLength;
-        const partiallyAssembledLine = unmaskedPartiallyAssembledLine & ~invertedPartiallyAssembleMask;
-        //* Call use customized assembly
+        const invertedPartiallyAssembleMask = BigInt(saturatedSixtyFourBitConstant << this.instructionFormat.assembledLineBitWidth);
+        const partiallyAssembledLine = iterativeMaskApplication(partiallyAssembledInstruction, ~invertedPartiallyAssembleMask, assembledLineCount);
+        //* Call user customized assembly
         return this.userAssemble(partiallyAssembledLine);
     }
 
     // `internalAssemble` Will be overridden by the user config
-    userAssemble(line) {
+    userAssemble(line, originalLine, instruction) {
         return line;
     }
     
@@ -84,6 +84,14 @@ function iterativeAssembleOR (array0, array1, length) {
     return combinedArray;
 }
 
+function iterativeMaskApplication (array, mask, length) {
+    var maskedArray = new Array(length).fill(BigInt("0x0000000000000000"));
+    for (let i = 0; i < length; i++) {
+        maskedArray[0] = BigInt(array[i] & mask);
+    }
+    return maskedArray;
+}
+
 class InstructionOperand {
     value = undefined;
     assemblyOrder = undefined;
@@ -102,15 +110,6 @@ class InstructionOperand {
         this.value = value;
     }
 }
-
-function tryRegisterAddressExtraction (operandString) {
-    if (operandString.startsWith("r")) {
-        const removeRRegex = new RegExp("r", "g");
-        return operandString.replace(removeRRegex, "");
-    } else {
-        throw new Error("Malformed Register Operand");
-    }
-};
 
 function operandExtraction (operandArray, splitLine, assembledLineCount) {
     var assembledOperands = new Array(assembledLineCount).fill(BigInt("0x0000000000000000"));
@@ -141,6 +140,9 @@ function operandExtraction (operandArray, splitLine, assembledLineCount) {
     return assembledOperands;
 }
 
+function immediateExtraction (immediateArray, splitLine, assembledLineCount) {
+
+}
 class InstructionOpcode {
     value = undefined;
     lineOffset = undefined;
@@ -178,7 +180,8 @@ class InstructionFormat {
     flags = [];
     sourceOperands = [];
     destOperands = [];
-    constructor (mnemonic, assembledLineBitWidth, assembledLineCount, opcode, flags, sourceOperands, destOperands) {
+    immediate = [];
+    constructor (mnemonic, assembledLineBitWidth, assembledLineCount, opcode, flags, sourceOperands, destOperands, immediate) {
         this.mnemonic = mnemonic;
         this.assembledLineBitWidth = assembledLineBitWidth;
         this.assembledLineCount = assembledLineCount;
@@ -186,6 +189,7 @@ class InstructionFormat {
         this.flags = flags;
         this.sourceOperands = sourceOperands;
         this.destOperands = destOperands;
+        this.immediate = immediate;
     }
 }
 class InstructionDefinition {

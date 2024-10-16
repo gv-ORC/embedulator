@@ -13,7 +13,7 @@ const branchFlags = new InstructionOperand(undefined, 0, 11, 10);
 class AssembledNopFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("nop", 16, 1, [opcode], [], [], []);
+        const instructionFormat = new InstructionFormat("nop", 16, 1, [opcode], [], [], [], []);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -22,7 +22,7 @@ class AssembledNopFormat extends InstructionAssembly {
 class AssembledThreeOperandFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("three-operand", 16, 1, [opcode], [], [operandB, operandC], [operandA]);
+        const instructionFormat = new InstructionFormat("three-operand", 16, 1, [opcode], [], [operandB, operandC], [operandA], []);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -31,7 +31,7 @@ class AssembledThreeOperandFormat extends InstructionAssembly {
 class AssembledTwoOperandFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("two-operand", 16, 1, [opcode], [], [operandC], [operandA]);
+        const instructionFormat = new InstructionFormat("two-operand", 16, 1, [opcode], [], [operandC], [operandA], []);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -40,65 +40,25 @@ class AssembledTwoOperandFormat extends InstructionAssembly {
 class AssembledStoreFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("store", 16, 1, [opcode], [], [operandB], [operandC]);
+        const instructionFormat = new InstructionFormat("store", 16, 1, [opcode], [], [operandB], [operandC], []);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
-    }
-    userAssemble(line) {
-        //! Replace 
-        // Custom Assembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-    userDisassemble(line) {
-        // Custom Disassembly Code Here
-        const assembledLine = line;
-        return assembledLine;
     }
 }
 // Immediate
 class AssembledImmediateFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("immediate", 16, 1, [opcode], [], [immediate], [operandA]);
+        const instructionFormat = new InstructionFormat("immediate", 16, 1, [opcode], [], [], [operandA], [immediate]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
-    }
-    userAssemble(line) {
-        // Custom Assembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-    userDisassemble(line) {
-        // Custom Disassembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-}
-// Halt
-class AssembledImmediateFormat extends InstructionAssembly {
-    constructor(hexValue) {
-        const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("halt", 16, 1, [opcode], [], [], []);
-        super(instructionFormat);
-        this.instructionFormat = instructionFormat;
-    }
-    userAssemble(line) {
-        // Custom Assembly Code Here
-        const assembledLine = line;
-        return assembledLine;
-    }
-    userDisassemble(line) {
-        // Custom Disassembly Code Here
-        const assembledLine = line;
-        return assembledLine;
     }
 }
 // Jump
 class AssembledJumpFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("jump", 16, 1, [opcodeFormat], [jumpFlags], [jumpBranchDestination], []);
+        const instructionFormat = new InstructionFormat("jump", 16, 1, [opcodeFormat], [jumpFlags], [], [], [jumpBranchDestination]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -119,7 +79,7 @@ class AssembledJumpFormat extends InstructionAssembly {
 class AssembledBranchFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("branch", 16, 1, [opcode], [branchFlags], [jumpBranchDestination], []);
+        const instructionFormat = new InstructionFormat("branch", 16, 1, [opcode], [branchFlags], [], [], [jumpBranchDestination]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -262,6 +222,7 @@ const storeInstruction = new InstructionDefinition("str", new AssembledStoreForm
 // Load Immediate
 const loadImmediateOperations = {
     "stage_0": function loadImmediateExecute(instruction, emulator) {
+        //todo: Update this after new immediate extraction system is complete
         const immediate = BigInt(instruction.sourceOperands[0].value);
         const result = BigInt(immediate);
         const destinationAddress = BigInt(instruction.destOperands[0].value);
