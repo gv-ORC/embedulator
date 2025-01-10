@@ -1,10 +1,15 @@
 // - - - Emulator Test Start - - -
 
-//TODO: Look into using a code-editor plugin for the textareas, allows color coding of keywords and other things (CodeMirror, AceEditor.. per ChatGPT)
-//TODO: Make Breakpoints into a separate array
-//TODO: Performance Counter Break Statements
 //TODO: Assembler
+//TODO: Emulator v2
+//TODO: Hardware definitions (register count, ram address width, data address width, etc)
+//TODO: Performance Counter Break Statements
+//TODO: Make Breakpoints into a separate array
 //TODO: Labels
+//TODO: `Define` constants
+//TODO: Start @ address
+//TODO: Address overflow check
+//TODO: Von Neuman vs Harvard selection
 //TODO: History Buffer
 //TODO: History Rollback System
 //TODO: Build Stage Tracking system

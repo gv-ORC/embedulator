@@ -28,22 +28,21 @@ class InstructionAssembly {
         }
         //* Populate Source Operands
         const sourceOperands = instruction.instructionFormat.sourceOperands;
-        const partiallyAssembledSourceOperands = operandExtraction(sourceOperands, splitLine, assembledLineCount);
+        const partiallyAssembledSourceOperands = _OperandExtraction(sourceOperands, splitLine, assembledLineCount);
         var partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledOpcodes, partiallyAssembledSourceOperands, assembledLineCount);
         //* Populate Destination Operands
         const destOperands = instruction.instructionFormat.destOperands;
-        const partiallyAssembledDestOperands = operandExtraction(destOperands, splitLine, assembledLineCount);
+        const partiallyAssembledDestOperands = _OperandExtraction(destOperands, splitLine, assembledLineCount);
         partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledInstruction, partiallyAssembledDestOperands, assembledLineCount);
         //* Populate Flags
         const flags = instruction.instructionFormat.flags;
-        const partiallyAssembledFlags = operandExtraction(flags, splitLine, assembledLineCount);
+        const partiallyAssembledFlags = _OperandExtraction(flags, splitLine, assembledLineCount);
         partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledInstruction, partiallyAssembledFlags, assembledLineCount);
         //* Partially assemble the line
         const immediate = instruction.instructionFormat.immediate;
-        const partiallyAssembledImmediate = immediateExtraction(immediate, splitLine, assembledLineCount);
+        const partiallyAssembledImmediate = _ImmediateExtraction(immediate, splitLine, assembledLineCount);
         partiallyAssembledInstruction = iterativeAssembleOR(partiallyAssembledInstruction, partiallyAssembledImmediate, assembledLineCount);
-        
-        //TODO: add an immediate field to the instruction format
+        //* Mask Partially Assembled Lines
         const invertedPartiallyAssembleMask = BigInt(saturatedSixtyFourBitConstant << this.instructionFormat.assembledLineBitWidth);
         const partiallyAssembledLine = iterativeMaskApplication(partiallyAssembledInstruction, ~invertedPartiallyAssembleMask, assembledLineCount);
         //* Call user customized assembly
@@ -54,7 +53,7 @@ class InstructionAssembly {
     userAssemble(line, originalLine, instruction) {
         return line;
     }
-    
+
     _Disassemble(line){
         const opcode = this.instructionFormat.opcode;
 
@@ -73,6 +72,72 @@ class InstructionAssembly {
     
     getFormat() {
         return this.instructionFormat;
+    }
+
+    // Helper functions
+    _OperandExtraction (operandArray, splitLine, assembledLineCount) {
+        const saturatedSixtyFourBitConstant = BigInt("0xFFFFFFFFFFFFFFFF");
+        var assembledOperands = new Array(assembledLineCount).fill(BigInt("0x0000000000000000"));
+        if (operandArray.length > 0) {
+            operandArray.forEach(i => {
+                // Parse Value from 'line'
+                const operandIndex = BigInt(i.assemblyOrder);
+                const extractedOperandString = splitLine[operandIndex];
+                var extractedValue = BigInt(0x0000);
+                if (extractedOperandString.startsWith("r")) {
+                    const removeRRegex = new RegExp("r", "g");
+                    extractedString = extractedOperandString.replace(removeRRegex, "");
+                    extractedValue = BigInt(extractedString);
+                } else {
+                    throw new Error("Malformed Register Operand!");
+                }
+                // Get operand bit boundaries
+                const operandStartBit = BigInt(i.startBit);
+                const operandEndBit = BigInt(i.endBit);
+                // Generate and apply mask to opcode to fit within the bit boundaries
+                const operandMaskWidth = BigInt(operandStartBit - operandEndBit);
+                const invertedOpcodeMask = BigInt(saturatedSixtyFourBitConstant << operandMaskWidth);
+                const assembledOperand = BigInt(extractedValue & ~invertedOpcodeMask);
+                const modifiedLine = i.lineOffset;
+                assembledOperands[modifiedLine] = BigInt(assembledOperands[modifiedLine] | assembledOperand);
+            });
+        }
+        return assembledOperands;
+    }
+
+    _ImmediateExtraction (immediateArray, splitLine, assembledLineCount) {
+        const saturatedSixtyFourBitConstant = BigInt("0xFFFFFFFFFFFFFFFF");
+        var assembledImmediate = new Array(assembledLineCount).fill(BigInt("0x0000000000000000"));
+        var highestDefinedBit = 0;
+        if (immediateArray.length === 1) {
+            throw new Error("Malformed Immediate Definition!");
+        } else if (immediateArray.length > 1) {
+            operandArray.forEach((i, index) => {
+                if (index === 0) {
+                    // Ignore this signEnable true/false value.
+                } else {
+                    const immediateIndex = BigInt(i.assemblyOrder);
+                    const extractedImmediateString = splitLine[immediateIndex];
+                    const extractedValue = BigInt(extractedImmediateString);
+                    // Get operand bit boundaries
+                    const immediateStartBit = BigInt(i.startBit);
+                    const immediateEndBit = BigInt(i.endBit);
+                    highestDefinedBit = immediateEndBit > highestDefinedBit
+                                      ? immediateEndBit
+                                      : highestDefinedBit;
+                    // Generate and apply mask to opcode to fit within the bit boundaries
+                    const operandMaskWidth = BigInt(immediateStartBit - immediateEndBit);
+                    const invertedImmediateMask = BigInt(saturatedSixtyFourBitConstant << operandMaskWidth);
+                    const assembledImmediate = BigInt(extractedValue & ~invertedImmediateMask);
+                    const modifiedLine = i.lineOffset;
+                    assembledImmediate[modifiedLine] = BigInt(assembledImmediate[modifiedLine] | assembledImmediate);
+                }
+            });
+        }
+        if (immediateArray[0] === true) {
+            //Todo: Sign extension
+        }
+       return assembledImmediate;
     }
 }
 
@@ -111,38 +176,27 @@ class InstructionOperand {
     }
 }
 
-function operandExtraction (operandArray, splitLine, assembledLineCount) {
-    var assembledOperands = new Array(assembledLineCount).fill(BigInt("0x0000000000000000"));
-    if (operandArray.length > 0) {
-        operandArray.forEach(i => {
-            // Parse Value from 'line'
-            const operandIndex = BigInt(i.assemblyOrder);
-            const extractedOperandString = splitLine[operandIndex];
-            var extractedValue = BigInt(0x0000);
-            if (extractedOperandString.startsWith("r")) {
-                const removeRRegex = new RegExp("r", "g");
-                extractedString = extractedOperandString.replace(removeRRegex, "");
-                extractedValue = BigInt(extractedString);
-            } else {
-                throw new Error("Malformed Register Operand!");
-            }
-            // Get operand bit boundaries
-            const operandStartBit = BigInt(i.startBit);
-            const operandEndBit = BigInt(i.endBit);
-            // Generate and apply mask to opcode to fit within the bit boundaries
-            const operandMaskWidth = BigInt(operandStartBit - operandEndBit);
-            const invertedOpcodeMask = BigInt(saturatedSixtyFourBitConstant << operandMaskWidth);
-            const assembledOperand = BigInt(extractedValue & ~invertedOpcodeMask);
-            const modifiedLine = i.lineOffset;
-            assembledOperands[modifiedLine] = BigInt(assembledOperands[modifiedLine] | assembledOperand);
-        });
+class InstructionImmediate {
+    value = undefined;
+    assemblyOrder = undefined;
+    lineOffset = undefined;
+    startBit = undefined;
+    endBit = undefined;
+    signEnable = undefined;
+    reversed = undefined;
+    constructor (value, assemblyOrder, startBit, endBit) {
+        this.value = value;
+        this.assemblyOrder = assemblyOrder;
+        this.lineOffset = lineOffset;
+        this.startBit = startBit;
+        this.endBit = endBit;
     }
-    return assembledOperands;
+
+    setValue(value) {
+        this.value = value;
+    }
 }
 
-function immediateExtraction (immediateArray, splitLine, assembledLineCount) {
-
-}
 class InstructionOpcode {
     value = undefined;
     lineOffset = undefined;
@@ -180,6 +234,7 @@ class InstructionFormat {
     flags = [];
     sourceOperands = [];
     destOperands = [];
+    // First element in immediate array is a true/false value to enable/disable sign extension
     immediate = [];
     constructor (mnemonic, assembledLineBitWidth, assembledLineCount, opcode, flags, sourceOperands, destOperands, immediate) {
         this.mnemonic = mnemonic;
@@ -194,7 +249,6 @@ class InstructionFormat {
 }
 class InstructionDefinition {
     mnemonic = undefined;
-    aliases = [];
     instructionAssembly = undefined;
     instructionOperations = {};
     constructor (mnemonic, instructionAssembly, instructionOperations) {

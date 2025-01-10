@@ -1,8 +1,9 @@
 //? Format Elements
 // Operands
 const operandA = new InstructionOperand(undefined, 1, 1, 11, 8);
-const operandB = new InstructionOperand(undefined, 2,  1, 7, 4);
-const operandC = new InstructionOperand(undefined, 3,  1, 3, 0);
+const operandB = new InstructionOperand(undefined, 2, 1, 7, 4);
+const operandC = new InstructionOperand(undefined, 3, 1, 3, 0);
+// Immediates //TODO:
 const immediate = new InstructionOperand(undefined, 2, 1, 7, 0);
 const jumpBranchDestination = new InstructionOperand(undefined, 1, 1, 7, 0);
 // Flags
@@ -49,7 +50,7 @@ class AssembledStoreFormat extends InstructionAssembly {
 class AssembledImmediateFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("immediate", 16, 1, [opcode], [], [], [operandA], [immediate]);
+        const instructionFormat = new InstructionFormat("immediate", 16, 1, [opcode], [], [], [operandA], [false, immediate]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -58,7 +59,7 @@ class AssembledImmediateFormat extends InstructionAssembly {
 class AssembledJumpFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("jump", 16, 1, [opcodeFormat], [jumpFlags], [], [], [jumpBranchDestination]);
+        const instructionFormat = new InstructionFormat("jump", 16, 1, [opcodeFormat], [jumpFlags], [], [], [false, jumpBranchDestination]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -79,7 +80,7 @@ class AssembledJumpFormat extends InstructionAssembly {
 class AssembledBranchFormat extends InstructionAssembly {
     constructor(hexValue) {
         const opcode = new InstructionOpcode(hexValue, 15, 12);
-        const instructionFormat = new InstructionFormat("branch", 16, 1, [opcode], [branchFlags], [], [], [jumpBranchDestination]);
+        const instructionFormat = new InstructionFormat("branch", 16, 1, [opcode], [branchFlags], [], [], [false, jumpBranchDestination]);
         super(instructionFormat);
         this.instructionFormat = instructionFormat;
     }
@@ -98,6 +99,7 @@ class AssembledBranchFormat extends InstructionAssembly {
 }
 
 //? Instructions
+//TODO: support generic functions per instruction type
 // No Operation
 const nopOperations = {
     "stage_0": function nopExecute(instruction, emulator) {
